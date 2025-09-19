@@ -33,18 +33,24 @@ const Login = () => {
     checkUser();
   }, [router]);
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-    // Clear errors when user starts typing
-    if (error) setError('');
-    if (success) setSuccess('');
-  };
+const handleInputChange = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+) => {
+  const { name, value, type } = e.target;
 
-  const handleSubmit = async (e) => {
+  setFormData(prev => ({
+    ...prev,
+    [name]: type === 'checkbox'
+      ? (e.target as HTMLInputElement).checked 
+      : value,
+  }));
+
+  // Clear errors when user starts typing
+  if (error) setError('');
+  if (success) setSuccess('');
+};
+
+  const handleSubmit = async ( e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -58,7 +64,7 @@ const Login = () => {
         // Handle signup
         await handleSignup();
       }
-    } catch (err) {
+    } catch (err:any) {
       setError(err.message);
     } finally {
       setLoading(false);
@@ -113,7 +119,7 @@ const Login = () => {
     });
   };
 
-  const handleSocialLogin = async (provider) => {
+  const handleSocialLogin = async (provider:any) => {
     setLoading(true);
     setError('');
 
@@ -126,7 +132,7 @@ const Login = () => {
       });
 
       if (error) throw error;
-    } catch (err) {
+    } catch (err:any) {
       setError(err.message);
       setLoading(false);
     }
@@ -149,7 +155,7 @@ const Login = () => {
       if (error) throw error;
       
       setSuccess('تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني');
-    } catch (err) {
+    } catch (err:any) {
       setError(err.message);
     } finally {
       setLoading(false);

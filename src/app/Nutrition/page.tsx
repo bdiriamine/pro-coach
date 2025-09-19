@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Head from 'next/head';
 import HeaderComponent from '../shared/component/HeaderComponent/HeaderComponent';
 import Footer from '../shared/component/Footer/Footer';
+import Image from 'next/image';
 
 const Nutrition = () => {
   const [activeTab, setActiveTab] = useState('plans');
@@ -211,7 +212,7 @@ const Nutrition = () => {
                     )}
                     
                     <div className="h-48 overflow-hidden">
-                      <img 
+                      <Image 
                         src={plan.image} 
                         alt={plan.title}
                         className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
@@ -270,7 +271,7 @@ const Nutrition = () => {
                 {nutritionData.recipes.map(recipe => (
                   <div key={recipe.id} className="bg-white rounded-xl shadow-lg overflow-hidden">
                     <div className="h-48 overflow-hidden">
-                      <img 
+                      <Image 
                         src={recipe.image} 
                         alt={recipe.title}
                         className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
@@ -326,7 +327,7 @@ const Nutrition = () => {
                 {nutritionData.supplements.map(supplement => (
                   <div key={supplement.id} className="bg-white rounded-xl shadow-lg overflow-hidden text-center">
                     <div className="h-40 overflow-hidden">
-                      <img 
+                      <Image 
                         src={supplement.image} 
                         alt={supplement.name}
                         className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"

@@ -5,6 +5,7 @@ import HeaderComponent from '../shared/component/HeaderComponent/HeaderComponent
 import Footer from '../shared/component/Footer/Footer';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../api/connection/supabasseConnection';
+import Image from 'next/image';
 
 
 
@@ -221,7 +222,7 @@ console.log("Cart items count:", getTotalItems());
                             cartItems.map((item) => (
                               <li key={item.id} className="py-6 flex">
                                 <div className="flex-shrink-0 w-24 h-24 border border-gray-200 rounded-md overflow-hidden">
-                                  <img
+                                  <Image
                                     src={item.products?.image || '/placeholder.jpg'}
                                     alt={item.products?.name}
                                     className="w-full h-full object-center object-cover"

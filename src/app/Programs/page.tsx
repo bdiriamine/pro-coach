@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Head from 'next/head';
 import Footer from '../shared/component/Footer/Footer';
 import HeaderComponent from '../shared/component/HeaderComponent/HeaderComponent';
+import Image from 'next/image';
 
 const ProgramsPage = () => {
   const [activeCategory, setActiveCategory] = useState('all');
@@ -170,7 +171,7 @@ const ProgramsPage = () => {
               )}
               
               <div className="h-48 overflow-hidden">
-                <img 
+                <Image 
                   src={program.image} 
                   alt={program.title}
                   className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"

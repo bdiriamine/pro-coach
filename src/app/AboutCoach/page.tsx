@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Head from 'next/head';
 import HeaderComponent from '../shared/component/HeaderComponent/HeaderComponent';
 import Footer from '../shared/component/Footer/Footer';
+import Image from 'next/image';
 
 const AboutCoach = () => {
   const [activeTab, setActiveTab] = useState('about');
@@ -45,7 +46,7 @@ const AboutCoach = () => {
           <div className="md:w-1/3 mb-6 md:mb-0 flex justify-center">
             <div className="relative">
               <div className="w-48 h-48 md:w-64 md:h-64 bg-gradient-to-br from-blue-200 to-blue-100 rounded-full overflow-hidden shadow-lg">
-                <img 
+                <Image 
                   src="/aa3.jpg" 
                   alt={coachData.name}
                   className="w-full h-full object-cover"
