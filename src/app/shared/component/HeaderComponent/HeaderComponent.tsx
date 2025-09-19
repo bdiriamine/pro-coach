@@ -3,11 +3,14 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/app/api/connection/supabasseConnection';
+import { User } from '@supabase/supabase-js';
 
-
+type HeaderComponentProps = {
+  cartItemsCount: number;
+};
 function HeaderComponent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [user, setUser] = useState(null);
+const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const pathname = usePathname();
   
@@ -49,7 +52,7 @@ function HeaderComponent() {
     }
   };
 
-  const isActive = (path) => {
+  const isActive = (path:string) => {
     if (path === '/') {
       return pathname === path;
     }

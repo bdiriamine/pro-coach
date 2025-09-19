@@ -1,180 +1,169 @@
-"use client"
-import { useState, useEffect } from 'react';
-import Head from 'next/head';
-import HeaderComponent from '../shared/component/HeaderComponent/HeaderComponent';
-import Footer from '../shared/component/Footer/Footer';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../api/connection/supabasseConnection';
-import Image from 'next/image';
+"use client";
 
+import { useState } from "react";
+import Head from "next/head";
+import HeaderComponent from "../shared/component/HeaderComponent/HeaderComponent";
+import Footer from "../shared/component/Footer/Footer";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "../api/connection/supabasseConnection";
+import Image from "next/image";
 
+// -------------------- Types --------------------
+type Product = {
+  id: string;
+  name: string;
+  price: number;
+  old_price?: number;
+  image: string;
+  featured?: boolean;
+  in_stock: boolean;
+  sizes?: string[];
+  colors?: string[];
+  category?: string;
+};
 
+type Category = {
+  id: string;
+  name: string;
+};
 
+type CartItem = {
+  id: string;
+  product_id: string;
+  quantity: number;
+  price: number;
+  products?: Product;
+};
+
+// -------------------- Component --------------------
 const StorePage = () => {
-  const [activeCategory, setActiveCategory] = useState('all');
-  const [showCart, setShowCart] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [showCart, setShowCart] = useState<boolean>(false);
   const queryClient = useQueryClient();
 
-  // Fetch products from Supabase
-  const { data: products = [], isLoading, error } = useQuery({
-    queryKey: ['products'],
+  // -------------------- Products --------------------
+  const { data: products = [], isLoading, error } = useQuery<Product[]>({
+    queryKey: ["products"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
+        .from("products")
+        .select("*")
+        .order("created_at", { ascending: false });
       if (error) throw new Error(error.message);
-      return data;
-    }
+      return data ?? [];
+    },
   });
 
-  // Fetch categories from Supabase
-  const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
+  // -------------------- Categories --------------------
+  const { data: categories = [] } = useQuery<Category[]>({
+    queryKey: ["categories"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name');
-      
+        .from("categories")
+        .select("*")
+        .order("name");
       if (error) throw new Error(error.message);
-      return data;
-    }
+      return data ?? [];
+    },
   });
 
-  // Fetch cart items from Supabase (for authenticated users)
-  const { data: cartItems = [] } = useQuery({
-    queryKey: ['cart'],
+  // -------------------- Cart --------------------
+  const { data: cartItems = [] } = useQuery<CartItem[]>({
+    queryKey: ["cart"],
     queryFn: async () => {
-      // In a real app, you would filter by user ID
       const { data, error } = await supabase
-        .from('cart')
-        .select(`
-          *,
-          products (*)
-        `);
-      
+        .from("cart")
+        .select(`*, products (*)`);
       if (error) throw new Error(error.message);
-      return data;
-    }
+      return data ?? [];
+    },
   });
 
-  // Add to cart mutation
+  // -------------------- Mutations --------------------
   const addToCartMutation = useMutation({
-    mutationFn: async (product) => {
-      // Check if product already exists in cart
+    mutationFn: async (product: Product) => {
       const { data: existingItem } = await supabase
-        .from('cart')
-        .select('*')
-        .eq('product_id', product?.id)
+        .from("cart")
+        .select("*")
+        .eq("product_id", product.id)
         .single();
-      
+
       if (existingItem) {
-        // Update quantity if product exists
         const { data, error } = await supabase
-          .from('cart')
+          .from("cart")
           .update({ quantity: existingItem.quantity + 1 })
-          .eq('id', existingItem.id)
+          .eq("id", existingItem.id)
           .select();
-        
         if (error) throw new Error(error.message);
         return data;
       } else {
-        // Add new product to cart
         const { data, error } = await supabase
-          .from('cart')
-          .insert([{ 
-            product_id: product.id, 
-            quantity: 1,
-            price: product.price
-          }])
+          .from("cart")
+          .insert([{ product_id: product.id, quantity: 1, price: product.price }])
           .select();
-        
         if (error) throw new Error(error.message);
         return data;
       }
     },
     onSuccess: () => {
-      // Invalidate and refetch cart query
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
       setShowCart(true);
-    }
+    },
   });
 
-  // Remove from cart mutation
   const removeFromCartMutation = useMutation({
-    mutationFn: async (cartItemId) => {
-      const { error } = await supabase
-        .from('cart')
-        .delete()
-        .eq('id', cartItemId);
-      
+    mutationFn: async (cartItemId: string) => {
+      const { error } = await supabase.from("cart").delete().eq("id", cartItemId);
       if (error) throw new Error(error.message);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
-    }
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+    },
   });
 
-  // Update quantity mutation
   const updateQuantityMutation = useMutation({
-    mutationFn: async ({ cartItemId, newQuantity }) => {
+    mutationFn: async ({ cartItemId, newQuantity }: { cartItemId: string; newQuantity: number }) => {
       if (newQuantity < 1) {
-        // Remove item if quantity is 0
-        const { error } = await supabase
-          .from('cart')
-          .delete()
-          .eq('id', cartItemId);
-        
+        const { error } = await supabase.from("cart").delete().eq("id", cartItemId);
         if (error) throw new Error(error.message);
         return;
       }
-      
-      const { error } = await supabase
-        .from('cart')
-        .update({ quantity: newQuantity })
-        .eq('id', cartItemId);
-      
+      const { error } = await supabase.from("cart").update({ quantity: newQuantity }).eq("id", cartItemId);
       if (error) throw new Error(error.message);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
-    }
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+    },
   });
 
-  // Filter products based on active category
-  const filteredProducts = activeCategory === 'all' 
-    ? products 
-    : products.filter(product => product.category === activeCategory);
+  // -------------------- Helpers --------------------
+  const filteredProducts =
+    activeCategory === "all"
+      ? products
+      : products.filter((product) => product.category === activeCategory);
 
-  const getTotalPrice = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-  };
+  const getTotalPrice = () => cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
 
-  const getTotalItems = () => {
-    return cartItems.reduce((total, item) => total + item.quantity, 0);
-  };
+  const getTotalItems = () => cartItems.reduce((total, item) => total + item.quantity, 0);
 
+  // -------------------- Loading & Error --------------------
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100" dir="rtl">
-        <HeaderComponent cartItemsCount={0} />
+        <HeaderComponent  />
         <div className="container mx-auto px-4 py-20 text-center">
           <div className="animate-pulse text-2xl text-blue-800">جاري تحميل المنتجات...</div>
         </div>
       </div>
     );
   }
-console.log("Cart items:", cartItems);
-console.log("Show cart state:", showCart);
-console.log("Cart items count:", getTotalItems());
+
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100" dir="rtl">
-        <HeaderComponent cartItemsCount={0} />
+        <HeaderComponent  />
         <div className="container mx-auto px-4 py-20 text-center">
-          <div className="text-2xl text-red-600">حدث خطأ في تحميل المنتجات: {error.message}</div>
+          <div className="text-2xl text-red-600">حدث خطأ في تحميل المنتجات: {(error as Error).message}</div>
         </div>
       </div>
     );
@@ -189,7 +178,7 @@ console.log("Cart items count:", getTotalItems());
       </Head>
 
       {/* استخدام مكون الهيدر المشترك */}
-      <HeaderComponent cartItemsCount={getTotalItems()} />
+      <HeaderComponent  />
 
       {/* سلة التسوق الجانبية */}
       {showCart && (
@@ -224,7 +213,7 @@ console.log("Cart items count:", getTotalItems());
                                 <div className="flex-shrink-0 w-24 h-24 border border-gray-200 rounded-md overflow-hidden">
                                   <Image
                                     src={item.products?.image || '/placeholder.jpg'}
-                                    alt={item.products?.name}
+                                    alt={item.products?.name || ''}
                                     className="w-full h-full object-center object-cover"
                                   />
                                 </div>
@@ -369,9 +358,9 @@ console.log("Cart items count:", getTotalItems());
               )}
               
               <div className="h-56 overflow-hidden">
-                <img 
+                <Image 
                   src={product.image} 
-                  alt={product.name}
+                  alt={product.name || ''}
                   className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                 />
               </div>

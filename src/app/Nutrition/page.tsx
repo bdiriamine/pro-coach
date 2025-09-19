@@ -4,10 +4,21 @@ import Head from 'next/head';
 import HeaderComponent from '../shared/component/HeaderComponent/HeaderComponent';
 import Footer from '../shared/component/Footer/Footer';
 import Image from 'next/image';
-
+type Plan = {
+  id: number;
+  title: string;
+  duration: string;
+  goal: string;
+  calories: string;
+  price: string;
+  oldPrice: string;
+  features: string[];
+  image: string;
+  popular?: boolean;
+};
 const Nutrition = () => {
   const [activeTab, setActiveTab] = useState('plans');
-  const [selectedPlan, setSelectedPlan] = useState(null);
+const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
 
   // بيانات خطط التغذية
   const nutritionData = {
